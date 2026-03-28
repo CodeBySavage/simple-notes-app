@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../api";
 import Note from "../components/Note";
 import "../styles/Home.css";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
   const [notes, setNotes] = useState([]);
@@ -46,8 +47,13 @@ function Home() {
       .catch((err) => alert(err));
   };
 
+  const navigate = useNavigate();
+
   return (
     <div>
+      <button className="logout-button" onClick={() => navigate("/logout")}>
+        Log Out
+      </button>
       <div>
         <h2>Notes</h2>
         {notes.map((note) => (
