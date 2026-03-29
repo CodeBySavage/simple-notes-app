@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: notes_db
+      POSTGRES_USER: notes_user
+      POSTGRES_PASSWORD: notes_pass
+    ports:
+      - "5432:5432"
+  backend:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
