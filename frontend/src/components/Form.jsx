@@ -54,10 +54,30 @@ function Form({ route, method }) {
       <button className="form-button" type="submit">
         {name}
       </button>
-      <p>Don't have an account?</p>
-      <button className="register-button" onClick={() => navigate("/register")}>
-        Register
-      </button>
+      {method === "login" && (
+        <>
+          <p>Don't have an account?</p>
+          <button
+            type="button"
+            className="register-button"
+            onClick={() => navigate("/register")}
+          >
+            Register
+          </button>
+        </>
+      )}
+      {method === "register" && (
+        <>
+          <p>Already have an account?</p>
+          <button
+            type="button"
+            className="register-button"
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </button>
+        </>
+      )}
     </form>
   );
 }
