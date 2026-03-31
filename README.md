@@ -13,20 +13,30 @@ A full-stack notes application built with Django REST Framework and React, conta
 ## Architecture
 
 ```
-React (S3 + CloudFront)
-        ↓
-Application Load Balancer
-        ↓
-Django REST API (ECS Fargate)
-        ↓
-PostgreSQL (RDS)
+Browser
+   ↓
+CloudFront (HTTPS)
+   ├── /* → S3 (React frontend)
+   └── /api/* → ALB → ECS Fargate (Django API)
+                              ↓
+                        PostgreSQL (RDS)
 ```
 
-- The React frontend is hosted on S3 and distributed via CloudFront
+- The React frontend is hosted on S3 and distributed via CloudFront over HTTPS
+- All API traffic routes through CloudFront to the ALB and into the Django container
+- The ALB security group restricts inbound traffic to CloudFront IP ranges only using the AWS-managed prefix list — direct ALB access is blocked
 - The Django backend runs as a containerized service on ECS Fargate
 - The Docker image is stored in ECR and pulled by ECS at deploy time
 - PostgreSQL runs on RDS in a private subnet, only accessible by the backend
-- An Application Load Balancer sits in front of ECS to route traffic
+
+---
+
+## Security
+
+- **CloudFront-only ALB access** — The ALB security group uses the AWS-managed CloudFront prefix list (`com.amazonaws.global.cloudfront.origin-facing`) to block all traffic not originating from CloudFront
+- **JWT authentication** — All API endpoints require a valid JWT token except registration and login
+- **Environment variables** — Secrets and configuration are passed via ECS task definition environment variables, never hardcoded
+- **Private RDS** — The database runs in a private subnet with no public access
 
 ---
 
@@ -87,8 +97,8 @@ The app is deployed to AWS using the following services:
 - **ECS Fargate** — runs the containerized Django backend
 - **RDS** — managed PostgreSQL database
 - **S3** — hosts the built React frontend
-- **CloudFront** — CDN for the frontend
-- **ALB** — load balancer in front of ECS
+- **CloudFront** — CDN and HTTPS termination for both frontend and backend API
+- **ALB** — load balancer in front of ECS, restricted to CloudFront traffic only
 
 Migrations run automatically when the ECS task starts via `entrypoint.sh`.
 
@@ -96,7 +106,7 @@ Migrations run automatically when the ECS task starts via `entrypoint.sh`.
 
 ## Future Considerations
 
-- **HTTPS** — add a custom domain with an ACM certificate and update the ALB listener to HTTPS
+- **Custom domain** — add a custom domain with an ACM certificate
 - **CI/CD** — automate image builds and deployments via GitHub Actions
 - **WAF** — add AWS WAF for Layer 7 DDoS protection
 - **Environment separation** — separate staging and production environments

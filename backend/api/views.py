@@ -4,6 +4,12 @@ from rest_framework import generics
 from .serializers import UserSerializer, NoteSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Note
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def health_check(request):
+    return HttpResponse("OK")
 
 class NoteListCreate(generics.ListCreateAPIView):
     serializer_class = NoteSerializer
